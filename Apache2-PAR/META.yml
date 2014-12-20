@@ -1,0 +1,18 @@
+# http://module-build.sourceforge.net/META-spec.html
+#XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
+name:         Apache2-PAR
+version:      0.00_01
+version_from: PAR.pm
+installdirs:  site
+requires:
+    Apache::Test:                  1.01
+    Archive::Zip:                  1.05
+    Digest::MD5:                   2.2
+    File::Path:                    1.05
+    File::Spec:                    0.83
+    MIME::Types:                   1.004
+    mod_perl2:                     2
+    PAR:                           0.74
+
+distribution_type: module
+generated_by: ExtUtils::MakeMaker version 6.30

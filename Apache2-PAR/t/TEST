@@ -1,0 +1,17 @@
+#!/usr/local/bin/perl
+# WARNING: this file is generated, do not edit
+# 01: /usr/local/lib/perl5/site_perl/5.8.7/mach/Apache/TestConfig.pm:923
+# 02: /usr/local/lib/perl5/site_perl/5.8.7/mach/Apache/TestConfig.pm:1013
+# 03: /usr/local/lib/perl5/site_perl/5.8.7/mach/Apache/TestRun.pm:1284
+# 04: Makefile.PL:9
+
+BEGIN { eval { require blib && blib->import; } }
+
+use strict;
+use warnings FATAL => 'all';
+
+use lib qw(
+);
+
+
+use Apache::TestRunPerl ();Apache::TestRunPerl->new->run(@ARGV);

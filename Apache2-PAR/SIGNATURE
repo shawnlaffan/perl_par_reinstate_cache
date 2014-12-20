@@ -1,0 +1,51 @@
+This file contains message digests of all files listed in MANIFEST,
+signed via the Module::Signature module, version 0.41.
+
+To verify the content in this distribution, first make sure you have
+Module::Signature installed, then type:
+
+    % cpansign -v
+
+It would check each file's integrity, as well as the signature's
+validity.  If "==> Signature verified OK! <==" is not displayed,
+the distribution may already have been compromised, and you should
+not run its Makefile.PL or Build.PL.
+
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+
+SHA1 4566230ca28d888c41f11219f3faa3e116bcc77e Changes
+SHA1 8245924ba8b18781f8921e5b08b37d5433f5cd96 MANIFEST
+SHA1 f6769067132fe922a3929d3e5c50957f0c2fdc30 META.yml
+SHA1 01ee582c5018055de6955898268dbfa974c049e9 Makefile.PL
+SHA1 01ba045414a78fffbe988e69304a10981db2faed PAR.pm
+SHA1 fb9ac641ecfc88dc7d49e75d7503bc9e0cb8f447 PAR/PerlRun.pm
+SHA1 da5916a9f3a9bb0bfa64e5f2f5dd1b1dd6161a0c PAR/Registry.pm
+SHA1 3a2949c3d5c65e4463a2e58d4fe3e2f2481e7497 PAR/RegistryCooker.pm
+SHA1 c1ae5b0a82a7f46f7c93961facc9007e379ee642 PAR/ScriptBase.pm
+SHA1 8eb81d81e73d1f9d43e50031811fa859245a97a3 PAR/Static.pm
+SHA1 47769b28c63e8e8faa3bc9b7c6dc52aa8ce12340 PAR/tutorial.pod
+SHA1 90fbb5cf65fc019b8e5668f1a96539bab70a4c83 README
+SHA1 bf17ee86097b1da5d2c072a23cb4f82645819492 TODO
+SHA1 52cb122fdfe6e390d738a834be13ea3a6595b9d8 t/00module.t
+SHA1 a755a45b0e3bcd00fae07678b4d164d29295b749 t/00par.t
+SHA1 f78e22f33560f97084aec905e05a64d71eac345b t/00perlrun.t
+SHA1 55549da2424c2b65a94b7025ed94cec6e9348c4c t/00registry.t
+SHA1 7fe831b7f978b02c12123b480a250a30baee5fa1 t/00static.t
+SHA1 324f718aacf7ad547fde46964eedf23b5fd9e1bb t/00unpack.t
+SHA1 599a645f839be761da58ca938c88244ef6bf5145 t/TEST
+SHA1 63327f654b6681ae1ea48160eace0a62cdc923fe t/conf/extra.conf.in
+SHA1 40e86be50a0fcf1d63d18b00e8ae2087a2674e4b t/conf/modperl_1.pl
+SHA1 7b0d1a58518b9d8339a64191823c64b9f2e582c1 t/conf/modperl_2.pl
+SHA1 57ad89a45002c492eb0b6bbcdb781cb97cedb431 t/par/module.par
+SHA1 57ad89a45002c492eb0b6bbcdb781cb97cedb431 t/par/perlrun.par
+SHA1 57ad89a45002c492eb0b6bbcdb781cb97cedb431 t/par/registry.par
+SHA1 57ad89a45002c492eb0b6bbcdb781cb97cedb431 t/par/static.par
+SHA1 57ad89a45002c492eb0b6bbcdb781cb97cedb431 t/par/unpack.par
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.2 (FreeBSD)
+
+iD8DBQFDe4DWtLPdNzw1AaARAil8AJ9VTF4e1OyktVbNAf73KVs2gyphdACgnvsf
+acbFoBKTTxyHWABFd+hFl2I=
+=NbP0
+-----END PGP SIGNATURE-----

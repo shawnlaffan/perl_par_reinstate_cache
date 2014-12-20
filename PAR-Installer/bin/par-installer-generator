@@ -1,0 +1,108 @@
+#!perl
+use strict;
+use warnings;
+
+use Getopt::Long qw/GetOptions/;
+use PAR::Installer::Generator;
+our $VERSION = $PAR::Installer::Generator::VERSION;
+
+
+my $help = <<"HERE";
+Usage: $0 [-d DIR] [-c CONFFILE] [--generate] [-p STRING]
+
+Options:
+
+ -h | --help
+   Print a simple help message.
+ -v | --version
+   Print version.
+ -d DIR | --directory DIR
+   Set the output directory. Defaults to the current directory.
+ -c FILE | --config FILE
+   Import the specified YAML configuration file into the installer.
+ --generate
+   After all other actions, generate the installer binary.
+ -p STRING | --ppopt STRING
+   (can be specified multiple times!)
+   Specify custom options to the pp command. For experts only.
+
+For detailed instructions, run "perldoc $0" (or "man $0")
+or for the full scoop "perldoc PAR::Installer::Generator".
+HERE
+
+my $dir = '.';
+my $generate = 0;
+my $import_config;
+my $outfile;
+my @pp_opts;
+GetOptions(
+    'h|help|?' => sub { print $help; exit(1); },
+    'v|version' => sub { print "$0 version $VERSION\n"; exit(1); },
+    'd|directory=s' => \$dir,
+    'generate' => \$generate,
+    'c|config=s' => \$import_config,
+    'o|out=s' => \$outfile,
+    'p|ppopt=s' => \@pp_opts,
+);
+
+my $gen = PAR::Installer::Generator->new(
+    directory => $dir,
+);
+
+if (defined $import_config and -f $import_config) {
+    my $yml = YAML::Tiny->read($import_config);
+    $gen->set_parameters(
+        %{ $yml->[0] }
+    );
+}
+
+$gen->write_all();
+
+if ($generate) {
+    $gen->generate_installer_binary(
+        (defined $outfile ? (file => $outfile) : ()),
+        (@pp_opts ? (pp_options => \@pp_opts) : ()),
+    );
+}
+
+__END__
+
+=head1 NAME
+
+par-installer-generator - Command line interface to PAR::Installer::Generator
+
+=head1 SYNOPSIS
+
+  # create the ./my_installer directory structure and import my custom
+  # configuration
+  % par-installer-generator -d ./my_installer/ -c ./my_config.yml
+  
+  # Generate the installer binary 
+  % par-installer-generator -d ./my_installer/ --generate
+
+=head1 DESCRIPTION
+
+Simple, underfeatured command line interface to the PAR::Installer::Generator
+installer generator for Perl applications.
+
+Creates the installer directory structure, configuration, script and optionally
+the installer binary.
+
+=head2 OPTIONS
+
+  -h | --help
+    Print a simple help message.
+  -v | --version
+    Print version.
+  -d DIR | --directory DIR
+    Set the output directory. Defaults to the current directory.
+  -c FILE | --config FILE
+    Import the specified YAML configuration file into the installer.
+  --generate
+    After all other actions, generate the installer binary.
+  -p STRING | --ppopt STRING
+    (can be specified multiple times!)
+    Specify custom options to the pp command. For experts only.
+
+=cut
+

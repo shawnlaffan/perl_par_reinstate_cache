@@ -1,0 +1,18 @@
+Revision history for Perl extension Archive::Unzip::Burst.
+
+0.02_2 Fri May 16 13:58 2008
+        - Mark Dootson supplied a potential fix to make this module work
+          on Windows.
+
+0.02_1 Wed Sep 05 17:20 2007
+        - Experimental change to Makefile.PL: Add an explicit mention of
+          LD_LIBRARY_PATH and the local unzip src directory. Perhaps
+          that might fix the failures related to lacking a -lunzip.
+
+0.02   Thu Aug 30 11:20 2007
+	- Fixed some packaging problems. (By default, MakeMaker
+          removes all Makefiles from MANIFEST. Tsk.)
+
+0.01   Sun Jul 29 16:45 2007
+	- original version as uploaded to CPAN
+

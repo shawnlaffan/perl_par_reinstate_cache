@@ -1,0 +1,130 @@
+package PAR::Installer::Generator;
+use strict;
+use 5.006;
+use warnings;
+
+our $VERSION = '0.01';
+use Carp qw/croak carp/;
+use File::Spec;
+use File::Path ();
+use YAML::Tiny;
+#use FindBin;
+#use PAR::Repository::Client;
+
+=head1 NAME
+
+PAR::Installer::Generator - Application installer generator
+
+=head1 SYNOPSIS
+
+  use PAR::Installer::Generator;
+  my $gen = PAR::Installer::Generator->new(
+    directory => './my_installer', # opens existing or creates from scratch
+  );
+  
+  # Override default values of some parameters
+  $gen->set_parameters(
+    title => 'My App',
+    install_modules => [ qw/ Tk App::MyApp  / ],
+    install_scripts => [ qw/ my_application / ],
+  );
+  
+  # Optionally inspect the set of parameters for the installer
+  #my $hash = $gen->get_parameters();
+  #my $string = $gen->parameters_as_yaml();
+  
+  # Optionally inspect the setup code
+  #my $code = $gen->get_setup_script();
+  
+  # write custom parameters to disk
+  $gen->write_parameters();
+  
+  # Write the installer script
+  $gen->write_installer_script();
+
+  # create binary
+  $gen->generate_installer_binary();
+
+=head1 DESCRIPTION
+
+This class implements an installer generator. That means you can use
+it to generate a configuration file and installer binary which can be used
+to install an application. The application should be stored as one or more
+packages in a so-called PAR Repository which will be accessed by
+the installer.
+
+The repository can reside in the same directory as the installer files
+or it can be accessed via HTTP(S) over the network. It can contain
+modules (local and CPAN modules alike) and scripts. PAR Repositories can also
+contain cross-platform as well as platform specific packages so you can
+package your application for several platforms on the same distribution
+medium.
+
+=head1 METHODS
+
+=head2 new
+
+Creates a new PAR::Installer::Generator object. Takes key/value pairs as
+parameters. Required parameters:
+
+C<directory>, the directory in which the installer will (or does) reside.
+
+Upon creating the generator object, the directory will be created if it
+doesn't exist and all default files (F<installer.yml>, F<setup.pl>)
+will be created. If it exists and the files do, too, the files
+will be read.
+
+=cut
+
+sub new {
+    my $proto = shift;
+    my $class = ref($proto)||$proto;
+
+    my %args = @_;
+
+    my $dir = $args{directory};
+    if (not defined $dir) {
+        croak("new() needs a 'directory' parameter.");
+    }
+    elsif (-f $dir) {
+        croak("The 'directory' parameter ('$dir') points at a file!");
+    }
+    elsif (not -d $dir and -e $dir) {
+        croak("The 'directory' parameter ('$dir') exists but is not a directory.");
+    }
+        
+    my $self = {
+        dir => $dir,
+    };
+    bless $self => $class;
+    $self->_prepare_directory();
+
+    return $self;
+}
+
+1;
+
+__END__
+
+=head1 SEE ALSO
+
+This module is directly related to the C<PAR> project. You need to have
+basic familiarity with it.
+
+See L<PAR::Installer>, L<PAR>, L<PAR::Repository>, L<PAR::Repository::Client>,
+L<PAR::Dist>, etc.
+
+=head1 AUTHOR
+
+Steffen Müller, E<lt>smueller@cpan.orgE<gt>
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright (C) 2006 by Steffen Müller
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself, either Perl version 5.6 or,
+at your option, any later version of Perl 5 you may have available.
+
+=cut
+
