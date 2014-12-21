@@ -371,8 +371,6 @@ sub import {
         }
     }
 
-print "DEBUG:  \$PAR::__import = " . ($PAR::__import || '') . "\n";
-
     return if $PAR::__import;
     local $PAR::__import = 1;
 
@@ -385,7 +383,7 @@ print "DEBUG:  \$PAR::__import = " . ($PAR::__import || '') . "\n";
     if (unpar($progname)) {
         # XXX - handle META.yml here!
         push @PAR_INC, unpar($progname, undef, undef, 1);
-print "DEBUG:  called unpar\n";
+
         _extract_inc($progname);
         if ($LibCache{$progname}) {
           # XXX bad: this us just a good guess
@@ -497,9 +495,7 @@ sub _import_hash_ref {
         
         # XXX - handle META.yml here!
         _extract_inc($opt->{file});
-        
-print "DEBUG:  called \$opt->{run}\n";
-        
+
         my $zip = $LibCache{$opt->{file}};
         my $member = _first_member( $zip,
             (($script !~ /^script\//) ? ("script/$script", "script/$script.pl") : ()),
