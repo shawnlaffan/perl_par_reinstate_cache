@@ -371,6 +371,8 @@ sub import {
         }
     }
 
+print "DEBUG:  \$PAR::__import = " . ($PAR::__import || '') . "\n";
+
     return if $PAR::__import;
     local $PAR::__import = 1;
 
@@ -383,7 +385,7 @@ sub import {
     if (unpar($progname)) {
         # XXX - handle META.yml here!
         push @PAR_INC, unpar($progname, undef, undef, 1);
-
+print "DEBUG:  called unpar\n";
         _extract_inc($progname);
         if ($LibCache{$progname}) {
           # XXX bad: this us just a good guess
@@ -495,6 +497,8 @@ sub _import_hash_ref {
         
         # XXX - handle META.yml here!
         _extract_inc($opt->{file});
+        
+print "DEBUG:  called \$opt->{run}\n";
         
         my $zip = $LibCache{$opt->{file}};
         my $member = _first_member( $zip,
@@ -679,9 +683,13 @@ sub _extract_inc {
     my $inc_exists = -d $inc;
     my $is_handle = ref($file_or_azip_handle) && $file_or_azip_handle->isa('Archive::Zip::Archive');
 
+    #  canary file name needs to use CRC string or something to make it more unique
+    my $inc_canary = "$inc/PAR_CANARY.txt";  
+    my $inc_canary_exists = -e $inc_canary;
+
     require File::Spec;
 
-    if (!$inc_exists or $force_extract) {
+    if (!$inc_exists or $force_extract or !$inc_canary_exists) {
         for (1 .. 10) { mkdir("$inc.lock", 0755) and last; sleep 1 }
         
         undef $@;

@@ -1,5 +1,10 @@
 #!/usr/bin/perl
 
+#  Test that added files (via -a flag) are re-extracted
+#  if deleted by some other process.  
+#  Much of this is a copy of 20-pp.t but seems to be
+#  needed if we retain the sanity checks at the top.  
+
 use strict;
 use warnings;
 use Cwd;
@@ -89,13 +94,23 @@ $ENV{PERL5LIB} = join(
         $ENV{PERL5LIB},
 );
 
+#  dirty and underhanded - for debug only
+#  assumes whole par svn repo is present
+use FindBin qw /$Bin/;
+my $par_packer_lib = File::Spec->catdir($Bin, '..', '..', '..', 'PAR-Packer/trunk/lib');
+$ENV{PERL5LIB} = "$par_packer_lib;$ENV{PERL5LIB}";
+unshift @INC, $par_packer_lib;
+
+
 chdir $test_dir;
 
 $ENV{PAR_TMPDIR} = $test_dir;
 
-my $tmpfile1   = File::Spec->catfile($test_dir, 'check1.txt');
-my $tmpfolder1 = File::Spec->catfile($test_dir, 'checkfolder');
-my $tmpfile2   = File::Spec->catfile($tmpfolder1, 'check2.txt');
+my $tmpfile1    = File::Spec->catfile($test_dir, 'check1.txt');
+my $tmpfolder1  = File::Spec->catfile($test_dir, 'checkfolder');
+my $tmpfile2    = File::Spec->catfile($tmpfolder1, 'check2.txt');
+#  next file will eventually be added by PAR:Packer
+my $canary_file = File::Spec->catfile($tmpfolder1, 'PAR_CANARY.txt');
 
 mkdir $tmpfolder1 if !-d $tmpfolder1;
 foreach my $file ($tmpfile1, $tmpfile2) {
@@ -103,13 +118,20 @@ foreach my $file ($tmpfile1, $tmpfile2) {
     print {$fh} "$file\n$file\n";  #  contents don't matter for this test
     close ($fh);
 }
+open(my $cfh, '>', $canary_file) or die "Cannot open $canary_file to write to";
+print {$cfh}  "This is a canary in the coalmine to detect if some "
+        . "external process has partially cleared the PAR cache's inc dir\n";
+close ($cfh);
+
 
 my $script = File::Spec->catfile('script.pl');
 open(my $fh, '>', $script) or die "Cannot open $script";
 print {$fh} <<'END_OF_SCRIPT'
 use File::Spec;
 my $inc = File::Spec->catdir($ENV{PAR_TEMP}, 'inc');
-print $inc;
+print "$inc\n";
+print join ' ', '@INC:', @INC, "\n";
+#print "PERL5LIB: $ENV{PERL5LIB}\n";
 open my $fh, '<', File::Spec->catfile($inc, 'check1.txt')
   or die "Cannot open $inc/check1.txt";
 exit;
@@ -123,40 +145,59 @@ if ($^O =~ /Win/i) {
     $exe_file .= '.exe';
 }
 
-#  still need to ensure we are using the correct pp (i.e. not the system one)
-#  also use correct extension - exe is for Windows
+#  probably paranoia, since $cwd/blib/script is added to the path above
+my $pp_script = File::Spec->catdir($cwd, 'blib', 'script', 'pp');
+
 my @cmd = (
-    'pp', '-o', $exe_file,
+    #$pp_script,
+    '-o' => $exe_file,
     '-a' => "$tmpfile1;check1.txt",
     '-a' => "$tmpfolder1;checkfolder",
+    '-a' => "$canary_file;PAR_CANARY.txt",
     #'-v',
     $script,
 );
-print join ' ', @cmd, "\n";
-system @cmd;
+#print join ' ', @cmd, "\n";
+#system @cmd;
+my $opts = join ' ', @cmd;
+$opts =~ s'\\'\\\\'g;  #  CLUNKY, but quotemeta is overzealous
+$ENV{PP_OPTS} = $opts;
+print "$ENV{PP_OPTS}\n";
+use pp;
+pp->go();
 
 #  now run it
 $ENV{PAR_GLOBAL_CLEAN} = 0;
-my $inc_dir = `$exe_file`;
+print "...First run...\n";
+my $feedback = `$exe_file`;
+my @feedback = split "\n", $feedback;
+my $inc_dir  = $feedback[0];
 
 #  Now delete the files we packed into the exe using -a
 #  These are in the par temp inc folder
-diag "Deleting inc files\n";
+print "Deleting inc files\n";
 my $success;
-my $file1 = File::Spec->catfile($inc_dir, 'check1.txt');
-my $dir1  = File::Spec->catfile($inc_dir, 'checkfolder');
-$success  = unlink $file1;
-$success  = remove_tree $dir1;
+my $file1   = File::Spec->catfile($inc_dir, 'check1.txt');
+my $dir1    = File::Spec->catfile($inc_dir, 'checkfolder');
+my $canary1 = File::Spec->catfile($inc_dir, 'PAR_CANARY.txt');
+
+$success = unlink $file1;
+$success = remove_tree $dir1;
+$success = unlink $canary1;
 #  If the whole inc directory is deleted then it all gets re-extracted
 #  and thus there are no failures to test.
 #$success  = remove_tree $inc_dir;
 
 #  A couple of sanity checks.
 #  If these files are not deleted then subsequent tests will fail.
-ok (!-e $file1, "$file1 was deleted");
-ok (!-e $dir1,  "$dir1 was deleted");
+for my $file ($file1, $dir1, $canary1) {
+    use File::Basename;
+    my $basename = basename($file);
+    ok (!-e $file, "inc/$basename was deleted");
+}
 
 #  Now run the PAR binary again.  We should get 0 on success.
+print "...Second run...\n";
 my $error = system $exe_file;
 
 ok (!$error, "Packed script runs after -a packed files deleted from par/inc");
