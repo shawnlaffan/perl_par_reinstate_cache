@@ -1,12 +1,17 @@
 #!/usr/bin/perl
 
 use strict;
+use warnings;
 use Cwd;
 use Config;
 use FindBin;
 use File::Spec;
 use File::Temp ();
 use ExtUtils::MakeMaker;
+use File::Path qw /remove_tree/;
+
+
+use Test::More;
 
 $ENV{PAR_TMPDIR} = File::Temp::tempdir(TMPDIR => 1, CLEANUP => 1);
 
@@ -85,7 +90,80 @@ $ENV{PERL5LIB} = join(
 );
 
 chdir $test_dir;
-do "automated_pp_test.pl";
+
+$ENV{PAR_TMPDIR} = $test_dir;
+
+my $tmpfile1   = File::Spec->catfile($test_dir, 'check1.txt');
+my $tmpfolder1 = File::Spec->catfile($test_dir, 'checkfolder');
+my $tmpfile2   = File::Spec->catfile($tmpfolder1, 'check2.txt');
+
+mkdir $tmpfolder1 if !-d $tmpfolder1;
+foreach my $file ($tmpfile1, $tmpfile2) {
+    open(my $fh, '>', $file) or die "Cannot open $file to write to";
+    print {$fh} "$file\n$file\n";  #  contents don't matter for this test
+    close ($fh);
+}
+
+my $script = File::Spec->catfile('script.pl');
+open(my $fh, '>', $script) or die "Cannot open $script";
+print {$fh} <<'END_OF_SCRIPT'
+use File::Spec;
+my $inc = File::Spec->catdir($ENV{PAR_TEMP}, 'inc');
+print $inc;
+open my $fh, '<', File::Spec->catfile($inc, 'check1.txt')
+  or die "Cannot open $inc/check1.txt";
+exit;
+END_OF_SCRIPT
+  ;
+close ($fh);
+
+my $osname = $^O;
+my $exe_file = 'tester';
+if ($^O =~ /Win/i) {
+    $exe_file .= '.exe';
+}
+
+#  still need to ensure we are using the correct pp (i.e. not the system one)
+#  also use correct extension - exe is for Windows
+my @cmd = (
+    'pp', '-o', $exe_file,
+    '-a' => "$tmpfile1;check1.txt",
+    '-a' => "$tmpfolder1;checkfolder",
+    #'-v',
+    $script,
+);
+print join ' ', @cmd, "\n";
+system @cmd;
+
+#  now run it
+$ENV{PAR_GLOBAL_CLEAN} = 0;
+my $inc_dir = `$exe_file`;
+
+#  Now delete the files we packed into the exe using -a
+#  These are in the par temp inc folder
+diag "Deleting inc files\n";
+my $success;
+my $file1 = File::Spec->catfile($inc_dir, 'check1.txt');
+my $dir1  = File::Spec->catfile($inc_dir, 'checkfolder');
+$success  = unlink $file1;
+$success  = remove_tree $dir1;
+#  If the whole inc directory is deleted then it all gets re-extracted
+#  and thus there are no failures to test.
+#$success  = remove_tree $inc_dir;
+
+#  A couple of sanity checks.
+#  If these files are not deleted then subsequent tests will fail.
+ok (!-e $file1, "$file1 was deleted");
+ok (!-e $dir1,  "$dir1 was deleted");
+
+#  Now run the PAR binary again.  We should get 0 on success.
+my $error = system $exe_file;
+
+ok (!$error, "Packed script runs after -a packed files deleted from par/inc");
+
+
+done_testing();
+
 
 sub can_run {
     my ($self, $cmd) = @_;
