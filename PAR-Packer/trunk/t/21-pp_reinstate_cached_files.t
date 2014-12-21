@@ -106,22 +106,23 @@ chdir $test_dir;
 
 $ENV{PAR_TMPDIR} = $test_dir;
 
-my $tmpfile1    = File::Spec->catfile($test_dir, 'check1.txt');
-my $tmpfolder1  = File::Spec->catfile($test_dir, 'checkfolder');
-my $tmpfile2    = File::Spec->catfile($tmpfolder1, 'check2.txt');
+my $tmpfile1 = File::Spec->catfile($test_dir, 'check1.txt');
+my $tmpdir1  = File::Spec->catfile($test_dir, 'checkdir1');
+my $tmpfile2 = File::Spec->catfile($tmpdir1,  'check2.txt');
 #  next file will eventually be added by PAR:Packer
-my $canary_file = File::Spec->catfile($tmpfolder1, 'PAR_CANARY.txt');
+my $canary_file = File::Spec->catfile($tmpdir1, 'PAR_CANARY.txt');
 
-mkdir $tmpfolder1 if !-d $tmpfolder1;
+mkdir $tmpdir1 if !-d $tmpdir1;
 foreach my $file ($tmpfile1, $tmpfile2) {
     open(my $fh, '>', $file) or die "Cannot open $file to write to";
     print {$fh} "$file\n$file\n";  #  contents don't matter for this test
     close ($fh);
 }
-open(my $cfh, '>', $canary_file) or die "Cannot open $canary_file to write to";
-print {$cfh}  "This is a canary in the coalmine to detect if some "
-        . "external process has partially cleared the PAR cache's inc dir\n";
-close ($cfh);
+#  not needed once canary approach is in PAR.pm and PAR::Packer.pm
+#open(my $cfh, '>', $canary_file) or die "Cannot open $canary_file to write to";
+#print {$cfh}  "This is a canary in the coalmine to detect if some "
+#        . "external process has partially cleared the PAR cache's inc dir\n";
+#close ($cfh);
 
 
 my $script = File::Spec->catfile('script.pl');
@@ -130,10 +131,13 @@ print {$fh} <<'END_OF_SCRIPT'
 use File::Spec;
 my $inc = File::Spec->catdir($ENV{PAR_TEMP}, 'inc');
 print "$inc\n";
-print join ' ', '@INC:', @INC, "\n";
-#print "PERL5LIB: $ENV{PERL5LIB}\n";
-open my $fh, '<', File::Spec->catfile($inc, 'check1.txt')
-  or die "Cannot open $inc/check1.txt";
+#print join ' ', '@INC:', @INC, "\n";
+my $fname = File::Spec->catfile($inc, 'check1.txt');
+open my $fh1, '<', $fname
+  or die "Cannot open $fname";
+$fname = File::Spec->catfile($inc, 'checkdir1', 'check2.txt');
+open my $fh2, '<', $fname
+  or die "Cannot open $fname";
 exit;
 END_OF_SCRIPT
   ;
@@ -152,15 +156,15 @@ my @cmd = (
     #$pp_script,
     '-o' => $exe_file,
     '-a' => "$tmpfile1;check1.txt",
-    '-a' => "$tmpfolder1;checkfolder",
-    '-a' => "$canary_file;PAR_CANARY.txt",
+    '-a' => "$tmpdir1;checkdir1",
+    #'-a' => "$canary_file;PAR_CANARY.txt",
     #'-v',
     $script,
 );
 #print join ' ', @cmd, "\n";
 #system @cmd;
 my $opts = join ' ', @cmd;
-$opts =~ s'\\'\\\\'g;  #  CLUNKY, but quotemeta is overzealous
+$opts =~ s'\\'\\\\'g;  #  CLUNKY, but quotemeta is overzealous and escapes dashes and spaces
 $ENV{PP_OPTS} = $opts;
 print "$ENV{PP_OPTS}\n";
 use pp;
@@ -178,7 +182,7 @@ my $inc_dir  = $feedback[0];
 print "Deleting inc files\n";
 my $success;
 my $file1   = File::Spec->catfile($inc_dir, 'check1.txt');
-my $dir1    = File::Spec->catfile($inc_dir, 'checkfolder');
+my $dir1    = File::Spec->catfile($inc_dir, 'checkdir1');
 my $canary1 = File::Spec->catfile($inc_dir, 'PAR_CANARY.txt');
 
 $success = unlink $file1;
@@ -202,6 +206,12 @@ my $error = system $exe_file;
 
 ok (!$error, "Packed script runs after -a packed files deleted from par/inc");
 
+
+#  cleanup
+unlink $tmpfile1;
+unlink $tmpfile2;
+remove_tree $tmpdir1;
+unlink $script;
 
 done_testing();
 

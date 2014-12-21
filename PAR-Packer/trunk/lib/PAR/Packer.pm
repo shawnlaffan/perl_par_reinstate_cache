@@ -459,6 +459,7 @@ sub _compile_par {
 
     $self->_add_pack_manifest();
     $self->_add_add_manifest();
+    $self->_add_canary_file();
     $self->_make_manifest();
     $self->_write_zip();
 
@@ -519,6 +520,28 @@ sub _sign_par {
 "*** Signing requires PAR::Dist with Module::Signature 0.25 or later.  Skipping"
         );
     }
+}
+
+#  Allows PAR to detect if a system cleanup has deleted unlocked files in /inc
+#  Should it simply be appended to the -a list?
+sub _add_canary_file {
+    my ($self) = @_;
+
+    my $opt          = $self->{options};
+    my $par_file     = $self->{par_file};
+
+    $self->_vprint(1, "Writing canary file to $par_file");
+    $self->{zip} ||= Archive::Zip->new;
+    my $zip = $self->{zip};
+
+    my $in    = 'PAR_CANARY.txt';
+    if (!-e 'PAR_CANARY.txt') {
+        # needs to be in $TMP
+        open(my $fh, '>', 'PAR_CANARY.txt') or die "Could not open PAR_CANARY.txt";
+    }
+
+    my $value = ['file', 'PAR_CANARY.txt'];
+    $self->_add_file($zip, $in, $value);
 }
 
 sub _add_add_manifest {
