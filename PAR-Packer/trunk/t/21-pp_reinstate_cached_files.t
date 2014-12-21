@@ -109,8 +109,8 @@ $ENV{PAR_TMPDIR} = $test_dir;
 my $tmpfile1 = File::Spec->catfile($test_dir, 'check1.txt');
 my $tmpdir1  = File::Spec->catfile($test_dir, 'checkdir1');
 my $tmpfile2 = File::Spec->catfile($tmpdir1,  'check2.txt');
-#  next file will eventually be added by PAR:Packer
-my $canary_file = File::Spec->catfile($tmpdir1, 'PAR_CANARY.txt');
+#  next file will be added by PAR:Packer
+#my $canary_file = File::Spec->catfile($tmpdir1, 'PAR_CANARY.txt');
 
 mkdir $tmpdir1 if !-d $tmpdir1;
 foreach my $file ($tmpfile1, $tmpfile2) {
