@@ -668,6 +668,10 @@ sub _run_external_file {
     }
 }
 
+sub get_canary_file_name {
+    return '_PAR_CANARY.txt';
+}
+
 # extract the contents of a .par (or .exe) or any
 # Archive::Zip handle to the PAR_TEMP/inc directory.
 # returns that directory.
@@ -680,7 +684,7 @@ sub _extract_inc {
     my $is_handle = ref($file_or_azip_handle) && $file_or_azip_handle->isa('Archive::Zip::Archive');
 
     #  canary file name needs to use CRC string or something to make it more unique
-    my $inc_canary = "$inc/PAR_CANARY.txt";  
+    my $inc_canary = "$inc/" . get_canary_file_name();  
     my $inc_canary_exists = -e $inc_canary;
 
     require File::Spec;

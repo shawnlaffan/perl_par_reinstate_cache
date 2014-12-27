@@ -533,15 +533,18 @@ sub _add_canary_file {
     $self->_vprint(1, "Writing canary file to $par_file");
     $self->{zip} ||= Archive::Zip->new;
     my $zip = $self->{zip};
-
-    my $in    = 'PAR_CANARY.txt';
-    if (!-e 'PAR_CANARY.txt') {
-        # needs to be in $TMP
-        open(my $fh, '>', 'PAR_CANARY.txt') or die "Could not open PAR_CANARY.txt";
+    
+    my $canary_file_name = PAR::get_canary_file_name();
+    if (!-e $canary_file_name) {
+        # FIXME: needs to be cleaned up on completion
+        open(my $fh, '>', $canary_file_name) or die "Could not open $canary_file_name";
+        print {$fh} "This is a file to detect if an external process has incompletely cleared the PAR cache\n";
+        close $fh;
     }
 
-    my $value = ['file', 'PAR_CANARY.txt'];
-    $self->_add_file($zip, $in, $value);
+    my $value = ['file', $canary_file_name];
+    $self->_add_file($zip, $canary_file_name, $value);
+    #unlink $canary_file_name;
 }
 
 sub _add_add_manifest {

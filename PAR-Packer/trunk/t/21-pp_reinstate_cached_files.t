@@ -41,7 +41,8 @@ sub samefiles {
 chdir File::Spec->catdir($FindBin::Bin, File::Spec->updir);
 
 my $cwd = getcwd();
-my $test_dir = File::Temp::tempdir(TMPDIR => 1, CLEANUP => 1);
+my $test_dir = File::Spec->catdir($cwd, 'contrib', 'automated_pp_test');
+#my $test_dir = File::Temp::tempdir(TMPDIR => 1, CLEANUP => 1);
 
 my $parl = File::Spec->catfile($cwd, 'blib', 'script', "parl$Config{_exe}");
 my $startperl = $Config{startperl};
@@ -152,7 +153,7 @@ my @cmd = (
     '-a' => "$tmpfile1;check1.txt",
     '-a' => "$tmpdir1;checkdir1",
     #'-a' => "$canary_file;PAR_CANARY.txt",
-    #'-v',
+    '-v',
     $script,
 );
 #print join ' ', @cmd, "\n";
@@ -177,7 +178,7 @@ print "Deleting inc files\n";
 my $success;
 my $file1   = File::Spec->catfile($inc_dir, 'check1.txt');
 my $dir1    = File::Spec->catfile($inc_dir, 'checkdir1');
-my $canary1 = File::Spec->catfile($inc_dir, 'PAR_CANARY.txt');
+my $canary1 = File::Spec->catfile($inc_dir, PAR::get_canary_file_name());
 
 $success = unlink $file1;
 $success = remove_tree $dir1;
