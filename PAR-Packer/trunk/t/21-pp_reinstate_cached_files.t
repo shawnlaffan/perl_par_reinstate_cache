@@ -41,7 +41,7 @@ sub samefiles {
 chdir File::Spec->catdir($FindBin::Bin, File::Spec->updir);
 
 my $cwd = getcwd();
-my $test_dir = File::Spec->catdir($cwd, 'contrib', 'automated_pp_test');
+my $test_dir = File::Temp::tempdir(TMPDIR => 1, CLEANUP => 1);
 
 my $parl = File::Spec->catfile($cwd, 'blib', 'script', "parl$Config{_exe}");
 my $startperl = $Config{startperl};
@@ -96,6 +96,7 @@ $ENV{PERL5LIB} = join(
 
 #  dirty and underhanded - for debug only
 #  assumes whole par svn repo is present
+#  Need to run a require check
 use FindBin qw /$Bin/;
 my $par_packer_lib = File::Spec->catdir($Bin, '..', '..', '..', 'PAR-Packer/trunk/lib');
 $ENV{PERL5LIB} = "$par_packer_lib;$ENV{PERL5LIB}";
@@ -109,8 +110,6 @@ $ENV{PAR_TMPDIR} = $test_dir;
 my $tmpfile1 = File::Spec->catfile($test_dir, 'check1.txt');
 my $tmpdir1  = File::Spec->catfile($test_dir, 'checkdir1');
 my $tmpfile2 = File::Spec->catfile($tmpdir1,  'check2.txt');
-#  next file will be added by PAR:Packer
-#my $canary_file = File::Spec->catfile($tmpdir1, 'PAR_CANARY.txt');
 
 mkdir $tmpdir1 if !-d $tmpdir1;
 foreach my $file ($tmpfile1, $tmpfile2) {
@@ -118,11 +117,6 @@ foreach my $file ($tmpfile1, $tmpfile2) {
     print {$fh} "$file\n$file\n";  #  contents don't matter for this test
     close ($fh);
 }
-#  not needed once canary approach is in PAR.pm and PAR::Packer.pm
-#open(my $cfh, '>', $canary_file) or die "Cannot open $canary_file to write to";
-#print {$cfh}  "This is a canary in the coalmine to detect if some "
-#        . "external process has partially cleared the PAR cache's inc dir\n";
-#close ($cfh);
 
 
 my $script = File::Spec->catfile('script.pl');
@@ -206,12 +200,8 @@ my $error = system $exe_file;
 
 ok (!$error, "Packed script runs after -a packed files deleted from par/inc");
 
-
-#  cleanup
-unlink $tmpfile1;
-unlink $tmpfile2;
-remove_tree $tmpdir1;
-unlink $script;
+#  go back to the start dir so the File::Temp cleanup will work
+chdir $cwd;
 
 done_testing();
 
