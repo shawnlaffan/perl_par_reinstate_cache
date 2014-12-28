@@ -534,7 +534,7 @@ sub _add_canary_file {
     my $canary_dir  = File::Temp::tempdir(TMPDIR => 1, CLEANUP => 1);
     my $canary_file = File::Spec->catdir ($canary_dir, $canary_file_name);
 
-    $self->_vprint(1, "Writing canary file $canary_file_name to $par_file");
+    $self->_vprint(0, "Writing canary file $canary_file_name to $par_file");
     $self->{zip} ||= Archive::Zip->new;
     my $zip = $self->{zip};
     
@@ -558,7 +558,7 @@ sub _add_add_manifest {
     my $add_manifest = $self->add_manifest_hash();
     my $par_file     = $self->{par_file};
 
-    $self->_vprint(1, "Writing extra files to $par_file") if (%$add_manifest);
+    $self->_vprint(0, "Writing extra files to $par_file") if (%$add_manifest);
     $self->{zip} ||= Archive::Zip->new;
     my $zip = $self->{zip};
 
