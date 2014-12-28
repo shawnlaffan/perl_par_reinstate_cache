@@ -54,8 +54,8 @@ sub samefiles {
 chdir File::Spec->catdir($FindBin::Bin, File::Spec->updir);
 
 my $cwd = getcwd();
-my $test_dir = File::Spec->catdir($cwd, 'contrib', 'automated_pp_test');
-#my $test_dir = File::Temp::tempdir(TMPDIR => 1, CLEANUP => 1);
+#my $test_dir = File::Spec->catdir($cwd, 'contrib', 'automated_pp_test');
+my $test_dir = File::Temp::tempdir(TMPDIR => 1, CLEANUP => 1);
 
 my $parl = File::Spec->catfile($cwd, 'blib', 'script', "parl$Config{_exe}");
 my $startperl = $Config{startperl};
@@ -148,24 +148,23 @@ if ($^O =~ /Win/i) {
     $exe_file .= '.exe';
 }
 
-#  probably paranoia, since $cwd/blib/script is added to the path above
-my $pp_script = File::Spec->catdir($cwd, 'blib', 'script', 'pp');
+#  Not using script approach, as pp->go() allows for debugger step-through
+#my $pp_script = File::Spec->catdir($cwd, 'blib', 'script', 'pp');
 
 my @cmd = (
     #$pp_script,
     '-o' => $exe_file,
     '-a' => "$tmpfile1;check1.txt",
     '-a' => "$tmpdir1;checkdir1",
-    #'-a' => "$canary_file;PAR_CANARY.txt",
-    '-v',
+    #'-v',
     $script,
 );
 #print join ' ', @cmd, "\n";
 #system @cmd;
 my $opts = join ' ', @cmd;
-$opts =~ s'\\'\\\\'g;  #  CLUNKY, but quotemeta is overzealous and escapes dashes and spaces
+$opts =~ s'\\'\\\\'g;  #  CLUNKY, but quotemeta is overzealous and also escapes dashes and spaces
 $ENV{PP_OPTS} = $opts;
-print "$ENV{PP_OPTS}\n";
+print "\$ENV{PP_OPTS} = $ENV{PP_OPTS}\n";
 use pp;
 pp->go();
 
@@ -192,7 +191,8 @@ $success = unlink $canary1;
 #$success  = remove_tree $inc_dir;
 
 #  A couple of sanity checks.
-#  If these files are not deleted then subsequent tests will fail.
+#  If these files are not deleted then subsequent tests will fail,
+#  so this way we get a better indication as to why.
 for my $file ($file1, $dir1, $canary1) {
     use File::Basename;
     my $basename = basename($file);
