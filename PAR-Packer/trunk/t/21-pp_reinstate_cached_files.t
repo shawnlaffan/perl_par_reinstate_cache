@@ -14,19 +14,6 @@ use File::Spec;
 use File::Temp ();
 use ExtUtils::MakeMaker;
 use File::Path qw /remove_tree/;
-
-BEGIN {
-    #  dirty and underhanded - for debug only
-    #  assumes whole par svn repo is present
-    #  Need to run a require check
-    use FindBin qw /$Bin/;
-    my $par_packer_lib = File::Spec->catdir($Bin, '..', '..', '..', 'PAR-Packer/trunk/lib');
-    my $par_lib        = File::Spec->catdir($Bin, '..', '..', '..', 'trunk/lib');
-    print "Adding $par_lib and $par_packer_lib to \@INC\n";
-    $ENV{PERL5LIB} = "$par_packer_lib$Config::Config{path_sep}" . ($ENV{PERL5LIB} || '');
-    unshift @INC, $par_packer_lib, $par_lib;
-}
-
 use PAR ();
 
 use Test::More;
@@ -40,13 +27,13 @@ sub samefiles {
     -s $f1 == -s $f2 or return 0;
     local $/ = \65536;
     open my $fh1, '<', $f1 or return 0;
-	open my $fh2, '<', $f2 or return 0;
+    open my $fh2, '<', $f2 or return 0;
     while (1) {
-		my $c1 = <$fh1>;
-		my $c2 = <$fh2>;
-		last if !defined $c1 and !defined $c2;
-		return 0 if !defined $c1 or !defined $c2;
-		return 0 if $c1 ne $c2;
+        my $c1 = <$fh1>;
+        my $c2 = <$fh2>;
+        last if !defined $c1 and !defined $c2;
+        return 0 if !defined $c1 or !defined $c2;
+        return 0 if $c1 ne $c2;
     }
     return 1;
 }
@@ -88,25 +75,25 @@ if (!samefiles($startperl, $^X)) {
     exit;
 }
 
-unshift @INC, File::Spec->catdir($cwd, 'inc');
-unshift @INC, File::Spec->catdir($cwd, 'blib', 'lib');
-unshift @INC, File::Spec->catdir($cwd, 'blib', 'script');
+#unshift @INC, File::Spec->catdir($cwd, 'inc');
+#unshift @INC, File::Spec->catdir($cwd, 'blib', 'lib');
+#unshift @INC, File::Spec->catdir($cwd, 'blib', 'script');
 
 $ENV{PAR_GLOBAL_CLEAN} = 1;
 
-$ENV{PATH} = join(
-    $Config{path_sep},
-    grep length,
-        File::Spec->catdir($cwd, 'blib', 'script'),
-        $ENV{PATH},
-);
-$ENV{PERL5LIB} = join(
-    $Config{path_sep},
-    grep length,
-        File::Spec->catdir($cwd, 'blib', 'lib'),
-        $test_dir,
-        $ENV{PERL5LIB},
-);
+#$ENV{PATH} = join(
+#    $Config{path_sep},
+#    grep length,
+#        File::Spec->catdir($cwd, 'blib', 'script'),
+#        $ENV{PATH},
+#);
+#$ENV{PERL5LIB} = join(
+#    $Config{path_sep},
+#    grep length,
+#        File::Spec->catdir($cwd, 'blib', 'lib'),
+#        $test_dir,
+#        $ENV{PERL5LIB},
+#);
 
 chdir $test_dir;
 
@@ -143,10 +130,7 @@ END_OF_SCRIPT
 close ($fh);
 
 my $osname = $^O;
-my $exe_file = 'tester';
-if ($^O =~ /Win/i) {
-    $exe_file .= '.exe';
-}
+my $exe_file = 'tester' . $Config{_exe};
 
 #  Not using script approach, as pp->go() allows for debugger step-through
 #my $pp_script = File::Spec->catdir($cwd, 'blib', 'script', 'pp');
