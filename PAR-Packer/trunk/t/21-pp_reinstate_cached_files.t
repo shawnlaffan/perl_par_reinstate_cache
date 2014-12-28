@@ -15,6 +15,19 @@ use File::Temp ();
 use ExtUtils::MakeMaker;
 use File::Path qw /remove_tree/;
 
+BEGIN {
+    #  dirty and underhanded - for debug only
+    #  assumes whole par svn repo is present
+    #  Need to run a require check
+    use FindBin qw /$Bin/;
+    my $par_packer_lib = File::Spec->catdir($Bin, '..', '..', '..', 'PAR-Packer/trunk/lib');
+    my $par_lib        = File::Spec->catdir($Bin, '..', '..', '..', 'trunk/lib');
+    print "Adding $par_lib and $par_packer_lib to \@INC\n";
+    $ENV{PERL5LIB} = "$par_packer_lib$Config::Config{path_sep}" . ($ENV{PERL5LIB} || '');
+    unshift @INC, $par_packer_lib, $par_lib;
+}
+
+use PAR ();
 
 use Test::More;
 
@@ -94,15 +107,6 @@ $ENV{PERL5LIB} = join(
         $test_dir,
         $ENV{PERL5LIB},
 );
-
-#  dirty and underhanded - for debug only
-#  assumes whole par svn repo is present
-#  Need to run a require check
-use FindBin qw /$Bin/;
-my $par_packer_lib = File::Spec->catdir($Bin, '..', '..', '..', 'PAR-Packer/trunk/lib');
-$ENV{PERL5LIB} = "$par_packer_lib;$ENV{PERL5LIB}";
-unshift @INC, $par_packer_lib;
-
 
 chdir $test_dir;
 

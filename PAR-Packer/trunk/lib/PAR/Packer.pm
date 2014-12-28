@@ -530,21 +530,25 @@ sub _add_canary_file {
     my $opt          = $self->{options};
     my $par_file     = $self->{par_file};
 
-    $self->_vprint(1, "Writing canary file to $par_file");
+    my $canary_file_name = PAR::get_canary_file_name();
+    my $canary_dir  = File::Temp::tempdir(TMPDIR => 1, CLEANUP => 1);
+    my $canary_file = File::Spec->catdir ($canary_dir, $canary_file_name);
+
+    $self->_vprint(1, "Writing canary file $canary_file_name to $par_file");
     $self->{zip} ||= Archive::Zip->new;
     my $zip = $self->{zip};
     
-    my $canary_file_name = PAR::get_canary_file_name();
-    if (!-e $canary_file_name) {
+    my $canary_existed = -e $canary_file;
+    if (!$canary_existed) {
         # FIXME: needs to be cleaned up on completion
-        open(my $fh, '>', $canary_file_name) or die "Could not open $canary_file_name";
+        open(my $fh, '>', $canary_file) or die "Could not open $canary_file";
         print {$fh} "This is a file to detect if an external process has incompletely cleared the PAR cache\n";
         close $fh;
     }
 
-    my $value = ['file', $canary_file_name];
+    my $value = ['file', "$canary_file;$canary_file_name"];
     $self->_add_file($zip, $canary_file_name, $value);
-    #unlink $canary_file_name;
+
 }
 
 sub _add_add_manifest {
