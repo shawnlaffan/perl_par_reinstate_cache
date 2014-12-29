@@ -495,7 +495,7 @@ sub _import_hash_ref {
         
         # XXX - handle META.yml here!
         _extract_inc($opt->{file});
-
+        
         my $zip = $LibCache{$opt->{file}};
         my $member = _first_member( $zip,
             (($script !~ /^script\//) ? ("script/$script", "script/$script.pl") : ()),
@@ -668,6 +668,8 @@ sub _run_external_file {
     }
 }
 
+#  canary file name could perhaps use CRC string or similar
+#  to make it more unique
 sub get_canary_file_name {
     return '_PAR_CANARY.txt';
 }
@@ -678,13 +680,12 @@ sub get_canary_file_name {
 sub _extract_inc {
     my $file_or_azip_handle = shift;
     my $force_extract = shift;
-    my $inc = "$PAR::SetupTemp::PARTemp/inc";
+    my $inc   = File::Spec->catdir ($PAR::SetupTemp::PARTemp, 'inc');
     my $dlext = defined($Config{dlext}) ? $Config::Config{dlext} : '';
     my $inc_exists = -d $inc;
-    my $is_handle = ref($file_or_azip_handle) && $file_or_azip_handle->isa('Archive::Zip::Archive');
+    my $is_handle  = ref($file_or_azip_handle) && $file_or_azip_handle->isa('Archive::Zip::Archive');
 
-    #  canary file name needs to use CRC string or something to make it more unique
-    my $inc_canary = "$inc/" . get_canary_file_name();  
+    my $inc_canary = File::Spec->catdir($inc, get_canary_file_name());
     my $inc_canary_exists = -e $inc_canary;
 
     require File::Spec;
