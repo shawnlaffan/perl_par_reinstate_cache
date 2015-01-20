@@ -522,13 +522,13 @@ sub _sign_par {
     }
 }
 
-#  Allows PAR to detect if a system cleanup has deleted unlocked files in /inc
-#  Should it simply be appended to the -a list?
+#  Allows PAR to detect if an external process has
+#  deleted unlocked files in /inc
 sub _add_canary_file {
     my ($self) = @_;
 
-    my $opt          = $self->{options};
-    my $par_file     = $self->{par_file};
+    my $opt      = $self->{options};
+    my $par_file = $self->{par_file};
 
     my $canary_file_name = PAR::get_canary_file_name();
     my $canary_dir  = File::Temp::tempdir(TMPDIR => 1, CLEANUP => 1);
@@ -540,7 +540,6 @@ sub _add_canary_file {
     
     my $canary_existed = -e $canary_file;
     if (!$canary_existed) {
-        # FIXME: needs to be cleaned up on completion
         open(my $fh, '>', $canary_file) or die "Could not open $canary_file";
         print {$fh} "This is a file to detect if an external process has incompletely cleared the PAR cache\n";
         close $fh;
@@ -548,7 +547,6 @@ sub _add_canary_file {
 
     my $value = ['file', "$canary_file;$canary_file_name"];
     $self->_add_file($zip, $canary_file_name, $value);
-
 }
 
 sub _add_add_manifest {
