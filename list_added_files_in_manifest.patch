@@ -14,7 +14,7 @@ Index: PAR-Packer/trunk/lib/PAR/Packer.pm
      my $manifest = join("\n",
  '    <!-- accessible as jar:file:///NAME.par!/MANIFEST in compliant browsers -->',
          (sort keys %$full_manifest),
-+        (map {'inc/' . $_} sort keys %$add_manifest),
++        (sort keys %$add_manifest),
  q(    # <html><body onload="var X=document.body.innerHTML.split(/\n/);var Y='<iframe src=&quot;META.yml&quot; style=&quot;float:right;height:40%;width:40%&quot;></iframe><ul>';for(var x in X){if(!X[x].match(/^\s*#/)&&X[x].length)Y+='<li><a href=&quot;'+X[x]+'&quot;>'+X[x]+'</a>'}document.body.innerHTML=Y">)
      );
  
@@ -168,8 +168,8 @@ Index: PAR-Packer/trunk/t/21-add-files-listed-in-manifest.t
 +open(my $manifest_fh, '<', $manifest_file)
 +  or die "Cannot open $manifest_file for reading";
 +
-+my $path1 = "inc/check1.txt";
-+my $path2 = "inc/checkdir1/check2.txt";
++my $path1 = "check1.txt";
++my $path2 = "checkdir1/check2.txt";
 +
 +my ($has_file1, $has_file2);
 +
