@@ -1,5 +1,5 @@
 package PAR;
-$PAR::VERSION = '1.008';
+$PAR::VERSION = '1.010';
 
 use 5.006;
 use strict;
@@ -621,7 +621,7 @@ sub _run_member {
 
     if ($is_new) {
         my $file = $member->fileName;
-        print $fh "package main; shift \@INC;\n";
+        print $fh "package main;\n";
         if (defined &Internals::PAR::CLEARSTACK and $clear_stack) {
             print $fh "Internals::PAR::CLEARSTACK();\n";
         }
@@ -630,7 +630,7 @@ sub _run_member {
         seek ($fh, 0, 0);
     }
 
-    unshift @INC, sub { $fh };
+    unshift @INC, sub { shift @INC; return $fh };
 
     $ENV{PAR_0} = $filename; # for Pod::Usage
     { do 'main';
@@ -651,14 +651,14 @@ sub _run_external_file {
     if (defined &Internals::PAR::CLEARSTACK and $clear_stack) {
         $clear_stack = "Internals::PAR::CLEARSTACK();\n";
     }
-    my $string = "package main; shift \@INC;\n$clearstack#line 1 \"$filename\"\n"
+    my $string = "package main;\n$clearstack#line 1 \"$filename\"\n"
                  . do { local $/ = undef; <$ffh> };
     close $ffh;
 
     open my $fh, '<', \$string
       or die "Can't open file handle to string: $!";
 
-    unshift @INC, sub { $fh };
+    unshift @INC, sub { shift @INC; return $fh };
 
     $ENV{PAR_0} = $filename; # for Pod::Usage
     { do 'main';
@@ -668,29 +668,20 @@ sub _run_external_file {
     }
 }
 
-#  canary file name could perhaps use CRC string or similar
-#  to make it more unique
-sub get_canary_file_name {
-    return '_PAR_CANARY.txt';
-}
-
 # extract the contents of a .par (or .exe) or any
 # Archive::Zip handle to the PAR_TEMP/inc directory.
 # returns that directory.
 sub _extract_inc {
     my $file_or_azip_handle = shift;
     my $force_extract = shift;
-    my $inc   = File::Spec->catdir ($PAR::SetupTemp::PARTemp, 'inc');
+    my $inc = "$PAR::SetupTemp::PARTemp/inc";
     my $dlext = defined($Config{dlext}) ? $Config::Config{dlext} : '';
     my $inc_exists = -d $inc;
-    my $is_handle  = ref($file_or_azip_handle) && $file_or_azip_handle->isa('Archive::Zip::Archive');
-
-    my $inc_canary = File::Spec->catdir($inc, get_canary_file_name());
-    my $inc_canary_exists = -e $inc_canary;
+    my $is_handle = ref($file_or_azip_handle) && $file_or_azip_handle->isa('Archive::Zip::Archive');
 
     require File::Spec;
 
-    if (!$inc_exists or $force_extract or !$inc_canary_exists) {
+    if (!$inc_exists or $force_extract) {
         for (1 .. 10) { mkdir("$inc.lock", 0755) and last; sleep 1 }
         
         undef $@;
@@ -731,14 +722,9 @@ sub _extract_inc {
 
           for ( $zip->memberNames() ) {
               s{^/}{};
-
-              # Skip DLLs (these will be handled by the dynaloader hook) 
-              # except for those placed in File::ShareDir directories.
-              next if (m{\.\Q$dlext\E[^/]*$} && !m{^lib/auto/share/(dist|module)/}); 
-
               my $outfile =  File::Spec->catfile($inc, $_);
               next if -e $outfile and not -w _;
-              $zip->extractMember($_, "$inc/" . $_);
+              $zip->extractMember($_, $outfile);
           }
         }
         
@@ -802,7 +788,7 @@ sub find_par {
 
     return $rv if defined $rv or not @PriorityRepositoryObjects;
 
-    # the repositories that are prefered over locally installed modules
+    # the repositories that are preferred over locally installed modules
     my $module = $args[1];
     $module =~ s/\.pm$//;
     $module =~ s/\//::/g;

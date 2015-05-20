@@ -11,5 +11,5 @@ not all.
 
 PAR calls otherwise fail in such cases.  
 
-The official PAR repo is at http://svn.openfoundry.org/par
+The official PAR repo is at https://www.openfoundry.org/svn/par/
 

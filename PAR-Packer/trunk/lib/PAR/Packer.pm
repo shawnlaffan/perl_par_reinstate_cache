@@ -3,7 +3,7 @@ use 5.008001;
 use strict;
 use warnings;
 
-our $VERSION = '1.025';
+our $VERSION = '1.026';
 
 =head1 NAME
 
@@ -459,7 +459,6 @@ sub _compile_par {
 
     $self->_add_pack_manifest();
     $self->_add_add_manifest();
-    $self->_add_canary_file();
     $self->_make_manifest();
     $self->_write_zip();
 
@@ -522,33 +521,6 @@ sub _sign_par {
     }
 }
 
-#  Allows PAR to detect if an external process has
-#  deleted unlocked files in /inc
-sub _add_canary_file {
-    my ($self) = @_;
-
-    my $opt      = $self->{options};
-    my $par_file = $self->{par_file};
-
-    my $canary_file_name = PAR::get_canary_file_name();
-    my $canary_dir  = File::Temp::tempdir(TMPDIR => 1, CLEANUP => 1);
-    my $canary_file = File::Spec->catdir ($canary_dir, $canary_file_name);
-
-    $self->_vprint(0, "Writing canary file $canary_file_name to $par_file");
-    $self->{zip} ||= Archive::Zip->new;
-    my $zip = $self->{zip};
-    
-    my $canary_existed = -e $canary_file;
-    if (!$canary_existed) {
-        open(my $fh, '>', $canary_file) or die "Could not open $canary_file";
-        print {$fh} "This is a file to detect if an external process has incompletely cleared the PAR cache\n";
-        close $fh;
-    }
-
-    my $value = ['file', "$canary_file;$canary_file_name"];
-    $self->_add_file($zip, $canary_file_name, $value);
-}
-
 sub _add_add_manifest {
     my ($self) = @_;
 
@@ -556,7 +528,7 @@ sub _add_add_manifest {
     my $add_manifest = $self->add_manifest_hash();
     my $par_file     = $self->{par_file};
 
-    $self->_vprint(0, "Writing extra files to $par_file") if (%$add_manifest);
+    $self->_vprint(1, "Writing extra files to $par_file") if (%$add_manifest);
     $self->{zip} ||= Archive::Zip->new;
     my $zip = $self->{zip};
 
@@ -571,7 +543,6 @@ sub _make_manifest {
     my ($self) = @_;
 
     my $full_manifest = $self->{full_manifest};
-    my $add_manifest  = $self->{add_manifest};
 
     my $opt      = $self->{options};
     my $par_file = $self->{par_file};
@@ -584,8 +555,6 @@ sub _make_manifest {
     my $manifest = join("\n",
 '    <!-- accessible as jar:file:///NAME.par!/MANIFEST in compliant browsers -->',
         (sort keys %$full_manifest),
-        (sort keys %$add_manifest),
-        PAR::get_canary_file_name(),
 q(    # <html><body onload="var X=document.body.innerHTML.split(/\n/);var Y='<iframe src=&quot;META.yml&quot; style=&quot;float:right;height:40%;width:40%&quot;></iframe><ul>';for(var x in X){if(!X[x].match(/^\s*#/)&&X[x].length)Y+='<li><a href=&quot;'+X[x]+'&quot;>'+X[x]+'</a>'}document.body.innerHTML=Y">)
     );
 
@@ -596,7 +565,7 @@ conflicts: {}
 dist_name: $dist_name
 distribution_type: par
 dynamic_config: 0
-generated_by: '$class version $version'
+generated_by: '$class version $version
 license: unknown
 par:
   clean: $clean
