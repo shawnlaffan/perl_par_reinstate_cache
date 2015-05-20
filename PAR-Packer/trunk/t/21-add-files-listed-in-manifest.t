@@ -134,8 +134,8 @@ my $manifest_file = File::Spec->catfile ($par_tmp_dir, 'inc', 'MANIFEST');
 open(my $manifest_fh, '<', $manifest_file)
   or die "Cannot open $manifest_file for reading";
 
-my $path1 = "inc/check1.txt";
-my $path2 = "inc/checkdir1/check2.txt";
+my $path1 = "check1.txt";
+my $path2 = "checkdir1/check2.txt";
 
 my ($has_file1, $has_file2);
 
