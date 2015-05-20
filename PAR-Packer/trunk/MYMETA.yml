@@ -1,0 +1,35 @@
+---
+abstract: 'PAR Packager'
+author:
+  - "Audrey Tang <cpan@audreyt.org>\r"
+build_requires:
+  ExtUtils::Embed: '0'
+  ExtUtils::MakeMaker: '6.59'
+configure_requires:
+  ExtUtils::MakeMaker: '0'
+dynamic_config: 0
+generated_by: 'ExtUtils::MakeMaker version 7.04, CPAN::Meta::Converter version 2.142060'
+license: perl
+meta-spec:
+  url: http://module-build.sourceforge.net/META-spec-v1.4.html
+  version: '1.4'
+name: PAR-Packer
+no_index:
+  directory:
+    - t
+    - inc
+requires:
+  Archive::Zip: '1.00'
+  Compress::Zlib: '1.16'
+  File::Temp: '0.05'
+  Getopt::ArgvFile: '1.07'
+  IO::Compress::Gzip: '0'
+  Module::ScanDeps: '1.17'
+  PAR: '1.005'
+  PAR::Dist: '0.22'
+  Parse::Binary: '0.04'
+  Text::ParseWords: '0'
+  Win32::Exe: '0.17'
+  Win32::Process: '0'
+  perl: '5.008001'
+version: '1.025'

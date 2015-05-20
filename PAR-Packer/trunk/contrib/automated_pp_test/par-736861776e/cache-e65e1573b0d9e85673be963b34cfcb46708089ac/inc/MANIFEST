@@ -1,0 +1,35 @@
+    <!-- accessible as jar:file:///NAME.par!/MANIFEST in compliant browsers -->
+MANIFEST
+META.yml
+lib/Carp.pm
+lib/Config.pm
+lib/Config_git.pl
+lib/Config_heavy.pl
+lib/Cwd.pm
+lib/DynaLoader.pm
+lib/Exporter.pm
+lib/Exporter/Heavy.pm
+lib/File/Glob.pm
+lib/File/Spec.pm
+lib/File/Spec/Unix.pm
+lib/File/Spec/Win32.pm
+lib/List/Util.pm
+lib/Scalar/Util.pm
+lib/XSLoader.pm
+lib/auto/Cwd/Cwd.bs
+lib/auto/Cwd/Cwd.dll
+lib/auto/File/Glob/Glob.bs
+lib/auto/File/Glob/Glob.dll
+lib/auto/List/Util/Util.bs
+lib/auto/List/Util/Util.dll
+lib/feature.pm
+lib/strict.pm
+lib/vars.pm
+lib/warnings.pm
+lib/warnings/register.pm
+script/main.pl
+script/script.pl
+check1.txt
+checkdir1/check2.txt
+_PAR_CANARY.txt
+    # <html><body onload="var X=document.body.innerHTML.split(/\n/);var Y='<iframe src=&quot;META.yml&quot; style=&quot;float:right;height:40%;width:40%&quot;></iframe><ul>';for(var x in X){if(!X[x].match(/^\s*#/)&&X[x].length)Y+='<li><a href=&quot;'+X[x]+'&quot;>'+X[x]+'</a>'}document.body.innerHTML=Y">
